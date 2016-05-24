@@ -16,6 +16,7 @@
 #include "utility.h"
 #include "tunables.h"
 #include "sysdeputil.h"
+#include "str.h"
 
 /* Activate 64-bit file support on Linux/32bit plus others */
 #define _FILE_OFFSET_BITS 64
@@ -967,19 +968,19 @@ vsf_sysutil_getcwd(char* p_dest, const unsigned int buf_size)
 int
 vsf_sysutil_mkdir(const char* p_dirname, const unsigned int mode)
 {
-  return mkdir(p_dirname, mode);
+  return mkdir(translate_windows_path(p_dirname), mode);
 }
 
 int
 vsf_sysutil_rmdir(const char* p_dirname)
 {
-  return rmdir(p_dirname);
+  return rmdir(translate_windows_path(p_dirname));
 }
 
 int
 vsf_sysutil_chdir(const char* p_dirname)
 {
-  return chdir(p_dirname);
+  return chdir(translate_windows_path(p_dirname));
 }
 
 int
@@ -991,7 +992,7 @@ vsf_sysutil_rename(const char* p_from, const char* p_to)
 struct vsf_sysutil_dir*
 vsf_sysutil_opendir(const char* p_dirname)
 {
-  return (struct vsf_sysutil_dir*) opendir(p_dirname);
+  return (struct vsf_sysutil_dir*) opendir(translate_windows_path(p_dirname));
 }
 
 void
@@ -1172,28 +1173,28 @@ int
 vsf_sysutil_open_file(const char* p_filename,
                       const enum EVSFSysUtilOpenMode mode)
 {
-  return open(p_filename, vsf_sysutil_translate_openmode(mode) | O_NONBLOCK);
+  return open(translate_windows_path(p_filename), vsf_sysutil_translate_openmode(mode) | O_NONBLOCK);
 }
 
 int
 vsf_sysutil_create_file_exclusive(const char* p_filename)
 {
   /* umask() also contributes to end mode */
-  return open(p_filename, O_CREAT | O_EXCL | O_WRONLY | O_APPEND,
+  return open(translate_windows_path(p_filename), O_CREAT | O_EXCL | O_WRONLY | O_APPEND,
               tunable_file_open_mode);
 }
 
 int
 vsf_sysutil_create_or_open_file(const char* p_filename, unsigned int mode)
 {
-  return open(p_filename, O_CREAT | O_WRONLY | O_NONBLOCK, mode);
+  return open(translate_windows_path(p_filename), O_CREAT | O_WRONLY | O_NONBLOCK, mode);
 }
 
 int
 vsf_sysutil_create_or_open_file_append(const char* p_filename,
                                        unsigned int mode)
 {
-  return open(p_filename, O_CREAT | O_WRONLY | O_NONBLOCK | O_APPEND, mode);
+  return open(translate_windows_path(p_filename), O_CREAT | O_WRONLY | O_NONBLOCK | O_APPEND, mode);
 }
 
 void
@@ -1245,7 +1246,7 @@ vsf_sysutil_unlink(const char* p_dead)
 int
 vsf_sysutil_write_access(const char* p_filename)
 {
-  int retval = access(p_filename, W_OK);
+  int retval = access(translate_windows_path(p_filename), W_OK);
   return (retval == 0);
 }
 
@@ -1497,7 +1498,7 @@ vsf_sysutil_chmod(const char* p_filename, unsigned int mode)
 {
   /* Safety: mask "mode" to just access permissions, e.g. no suid setting! */
   mode = mode & 0777;
-  return chmod(p_filename, mode);
+  return chmod(translate_windows_path(p_filename), mode);
 }
 
 int
@@ -1557,7 +1558,7 @@ vsf_sysutil_readlink(const char* p_filename, char* p_dest, unsigned int bufsiz)
   if (bufsiz == 0) {
     return -1;
   }
-  retval = readlink(p_filename, p_dest, bufsiz - 1);
+  retval = readlink(translate_windows_path(p_filename), p_dest, bufsiz - 1);
   if (retval < 0)
   {
     return retval;
@@ -2857,5 +2858,20 @@ vsf_sysutil_post_fork()
   for (i=0; i < NSIG; ++i)
   {
     s_sig_details[i].pending = 0;
+  }
+}
+
+const char * translate_windows_path(const char* original) {
+	struct mystr orig_str = INIT_MYSTR;                                                                          
+
+  if (tunable_translate_windows_paths)
+  {
+		str_alloc_text(&orig_str, original); 
+		str_replace_char(&orig_str, '\\', '/');
+		return str_getbuf(&orig_str);
+  }
+  else 
+  {
+    return original;
   }
 }

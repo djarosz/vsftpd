@@ -1,3 +1,8 @@
 *.o
 *.swp
 vsftpd
+.clang_complete
+.vimrc
+.yavide_proj
+.yavide_session
+tags

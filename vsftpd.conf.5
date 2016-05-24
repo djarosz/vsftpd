@@ -548,6 +548,13 @@ may be found within the _current_ chroot() jail.
 
 Default: NO
 .TP
+.B translate_windows_paths
+If enabled, changes every \\ (used by windows client to seperate path elements)
+to / (used by unix systems). Use this carefully as setting this option to YES
+will prevent \\ in file names.
+
+Default: NO
+.TP
 .B use_localtime
 If enabled, vsftpd will display directory listings with the time in your
 local time zone. The default is to display GMT. The times returned by the

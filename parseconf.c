@@ -107,6 +107,7 @@ parseconf_bool_array[] =
   { "http_enable", &tunable_http_enable },
   { "seccomp_sandbox", &tunable_seccomp_sandbox },
   { "allow_writeable_chroot", &tunable_allow_writeable_chroot },
+  { "translate_windows_paths", &tunable_translate_windows_paths },
   { 0, 0 }
 };
 
