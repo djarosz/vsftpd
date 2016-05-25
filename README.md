@@ -19,7 +19,7 @@ Website: http://vsftpd.beasts.org/
 * See the FAQ file for solutions to frequently asked questions.
 * Visit http://vsftpd.beasts.org/ for vsftpd news and releases.
 
-## Pathces
+## Patches
 
 - Automatic conversion of windows path separator enabled by setting 
   _translate_windows_paths_ configuration parameter to *YES*
