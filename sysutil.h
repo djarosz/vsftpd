@@ -348,7 +348,5 @@ void vsf_sysutil_set_address_space_limit(unsigned long bytes);
 void vsf_sysutil_set_no_fds(void);
 void vsf_sysutil_set_no_procs(void);
 
-const char * translate_windows_path(const char*);
-
 #endif /* VSF_SYSUTIL_H */
 

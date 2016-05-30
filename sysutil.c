@@ -105,6 +105,7 @@ static int vsf_sysutil_translate_openmode(
 static void vsf_sysutil_alloc_statbuf(struct vsf_sysutil_statbuf** p_ptr);
 void vsf_sysutil_sockaddr_alloc(struct vsf_sysutil_sockaddr** p_sockptr);
 static int lock_internal(int fd, int lock_type);
+const char * translate_windows_path(const char* original);
 
 static void
 vsf_sysutil_alrm_sighandler(int signum)
