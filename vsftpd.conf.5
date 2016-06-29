@@ -281,8 +281,9 @@ Default: NO
 .TP
 .B listen_ipv6
 Like the listen parameter, except vsftpd will listen on an IPv6 socket instead
-of an IPv4 one. This parameter and the listen parameter are mutually
-exclusive.
+of an IPv4 one. Note that a socket listening on the IPv6 "any" address (::)
+will accept both IPv6 and IPv4 connections by default. This parameter and the
+listen parameter are mutually exclusive.
 
 Default: NO
 .TP
@@ -309,8 +310,8 @@ xferlog_std_format is not enabled. Useful for debugging.
 Default: NO
 .TP
 .B ls_recurse_enable
-When enabled, this setting will allow the use of "ls -R". This is a minor
-security risk, because a ls -R at the top level of a large site may consume
+When enabled, this setting will allow the use of "ls \-R". This is a minor
+security risk, because a ls \-R at the top level of a large site may consume
 a lot of resources.
 
 Default: NO
@@ -404,7 +405,7 @@ reuse (which proves that they know the same master secret as the control
 channel). Although this is a secure default, it may break many FTP clients,
 so you may want to disable it. For a discussion of the consequences, see
 http://scarybeastsecurity.blogspot.com/2009/02/vsftpd-210-released.html
-(Added in v2.1.0).
+ (Added in v2.1.0).
 
 Default: YES
 .TP
@@ -853,6 +854,16 @@ Example: deny_file={*.mp3,*.mov,.private}
 
 Default: (none)
 .TP
+.B download_file
+This option may be set to restrict downloads to files with names matching the
+specified pattern. If a filename also matches the
+.BR deny_file
+pattern, the denial takes precedence. For usage and pattern details, see the
+.BR deny_file
+option.
+
+Default: (none)
+.TP
 .B dsa_cert_file
 This option specifies the location of the DSA certificate to use for SSL
 encrypted connections.
@@ -947,7 +958,7 @@ Default: nobody
 .B pam_service_name
 This string is the name of the PAM service vsftpd will use.
 
-Default: ftp
+Default: vsftpd
 .TP
 .B pasv_address
 Use this option to override the IP address that vsftpd will advertise in
@@ -976,7 +987,7 @@ This option should be the name of a directory which is empty. Also, the
 directory should not be writable by the ftp user. This directory is used
 as a secure chroot() jail at times vsftpd does not require filesystem access.
 
-Default: /usr/share/empty
+Default: /var/run/vsftpd/empty
 .TP
 .B ssl_ciphers
 This option can be used to select which SSL ciphers vsftpd will allow for
@@ -987,6 +998,16 @@ security precaution as it prevents malicious remote parties forcing a cipher
 which they have found problems with.
 
 Default: DES-CBC3-SHA
+.TP
+.B upload_file
+This option may be set to restrict uploads to files with names matching the
+specified pattern. If a filename also matches the
+.BR deny_file
+pattern, the denial takes precedence. For usage and pattern details, see the
+.BR deny_file
+option.
+
+Default: (none)
 .TP
 .B user_config_dir
 This powerful option allows the override of any config option specified in

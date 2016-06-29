@@ -31,6 +31,7 @@ void str_alloc_ulong(struct mystr* p_str, unsigned long the_ulong);
 void str_alloc_filesize_t(struct mystr* p_str, filesize_t the_filesize);
 void str_copy(struct mystr* p_dest, const struct mystr* p_src);
 const char* str_strdup(const struct mystr* p_str);
+const char* str_strdup_trimmed(const struct mystr* p_str);
 void str_empty(struct mystr* p_str);
 void str_free(struct mystr* p_str);
 void str_trunc(struct mystr* p_str, unsigned int trunc_len);
@@ -100,6 +101,7 @@ void str_replace_unprintable(struct mystr* p_str, char new_char);
 int str_atoi(const struct mystr* p_str);
 filesize_t str_a_to_filesize_t(const struct mystr* p_str);
 unsigned int str_octal_to_uint(const struct mystr* p_str);
+void str_basename (struct mystr* d_str, const struct mystr* path);
 
 /* PURPOSE: Extract a line of text (delimited by \n or EOF) from a string
  * buffer, starting at character position 'p_pos'. The extracted line will

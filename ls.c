@@ -7,6 +7,7 @@
  * Would you believe, code to handle directory listing.
  */
 
+#include <stdlib.h>
 #include "ls.h"
 #include "access.h"
 #include "defs.h"
@@ -243,11 +244,42 @@ vsf_filename_passes_filter(const struct mystr* p_filename_str,
   struct mystr temp_str = INIT_MYSTR;
   struct mystr brace_list_str = INIT_MYSTR;
   struct mystr new_filter_str = INIT_MYSTR;
+  struct mystr normalize_filename_str = INIT_MYSTR;
+  const char *normname;
+  const char *path;
   int ret = 0;
   char last_token = 0;
   int must_match_at_current_pos = 1;
+
   str_copy(&filter_remain_str, p_filter_str);
-  str_copy(&name_remain_str, p_filename_str);
+
+  /* normalize filepath */
+  path = str_strdup(p_filename_str);
+  normname = vsf_sysutil_realpath(path, 1);
+  if (normname == NULL)
+     goto out;
+  str_alloc_text(&normalize_filename_str, normname);
+
+  if (!str_isempty (&filter_remain_str) && !str_isempty(&normalize_filename_str)) {
+    if (str_get_char_at(p_filter_str, 0) == '/') {
+      if (str_get_char_at(&normalize_filename_str, 0) != '/') {
+        str_getcwd (&name_remain_str);
+
+        if (str_getlen(&name_remain_str) > 1) /* cwd != root dir */
+          str_append_char (&name_remain_str, '/');
+
+        str_append_str (&name_remain_str, &normalize_filename_str);
+      }
+      else
+       str_copy (&name_remain_str, &normalize_filename_str);
+    } else {
+      if (str_get_char_at(p_filter_str, 0) != '{')
+        str_basename (&name_remain_str, &normalize_filename_str);
+      else
+        str_copy (&name_remain_str, &normalize_filename_str);
+    }
+  } else
+    str_copy(&name_remain_str, &normalize_filename_str);
 
   while (!str_isempty(&filter_remain_str) && *iters < VSFTP_MATCHITERS_MAX)
   {
@@ -288,6 +320,25 @@ vsf_filename_passes_filter(const struct mystr* p_filename_str,
       if (must_match_at_current_pos && indexx > 0)
       {
         goto out;
+      }
+      if (!must_match_at_current_pos)
+      {
+        struct mystr scan_fwd = INIT_MYSTR;
+
+        str_mid_to_end(&name_remain_str, &scan_fwd,
+                        indexx + str_getlen(&s_match_needed_str));
+        /* We're allowed to be greedy, test if it match further along
+         * keep advancing indexx while we can still match.
+         */
+        while( (locate_result = str_locate_str(&scan_fwd, &s_match_needed_str)),
+            locate_result.found )
+        {
+          indexx += locate_result.index + str_getlen(&s_match_needed_str);
+          str_mid_to_end(&scan_fwd, &temp_str,
+                         locate_result.index + str_getlen(&s_match_needed_str));
+          str_copy(&scan_fwd, &temp_str);
+        }
+       str_free(&scan_fwd);
       }
       /* Chop matched string out of remainder */
       str_mid_to_end(&name_remain_str, &temp_str,
@@ -360,6 +411,9 @@ vsf_filename_passes_filter(const struct mystr* p_filename_str,
     ret = 0;
   }
 out:
+  free(normname);
+  free(path);
+  str_free(&normalize_filename_str);
   str_free(&filter_remain_str);
   str_free(&name_remain_str);
   str_free(&temp_str);

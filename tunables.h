@@ -11,6 +11,7 @@ void tunables_load_defaults();
 /* Booleans */
 extern int tunable_anonymous_enable;          /* Allow anon logins */
 extern int tunable_local_enable;              /* Allow local logins */
+extern int tunable_utf8_filesystem;           /* Server uses UTF8 Filesystem */
 extern int tunable_pasv_enable;               /* Allow PASV */
 extern int tunable_port_enable;               /* Allow PORT */
 extern int tunable_chroot_local_user;         /* Restrict local to home dir */
@@ -137,6 +138,8 @@ extern const char* tunable_listen_address6;
 extern const char* tunable_cmds_allowed;
 extern const char* tunable_hide_file;
 extern const char* tunable_deny_file;
+extern const char* tunable_upload_file;
+extern const char* tunable_download_file;
 extern const char* tunable_user_sub_token;
 extern const char* tunable_email_password_file;
 extern const char* tunable_rsa_cert_file;

@@ -990,6 +990,51 @@ vsf_sysutil_rename(const char* p_from, const char* p_to)
   return rename(p_from, p_to);
 }
 
+char*
+vsf_sysutil_realpath(char const *path, int may_be_fresh)
+{
+  { /* existing paths must resolve right away */
+    char *const  resolved = realpath(path, NULL);
+    if ((resolved != NULL) || (errno != ENOENT) || !may_be_fresh)
+    {
+      return  resolved;
+    }
+  }
+
+  { /* try to resolve directory part */
+    char const *filename = strrchr(path, '/');
+    char const *resolved_dir;
+    if(filename == NULL)
+    {
+      filename     = path;
+      resolved_dir = realpath(".", NULL);
+    }
+    else
+    {
+      char const *original_dir;
+      filename++;
+      original_dir = strndup(path, filename-path);
+      resolved_dir = realpath(original_dir, NULL);
+      free((void*)original_dir);
+    }
+    if(resolved_dir == NULL)  return  NULL;
+
+    /* compose path from resolved directory and filename */
+    size_t  dir_len = strlen(resolved_dir);
+    char *resolved;
+
+    /* empty root as slash is added anyways */
+    if (dir_len == 1)  dir_len == 0;
+
+    resolved = (char*)malloc(dir_len+strlen(filename)+2);
+    strcpy(resolved, resolved_dir);
+    free((void*)resolved_dir);
+    resolved[dir_len] = '/';
+    strcpy(resolved+dir_len+1, filename);
+    return  resolved;
+  }
+}
+
 struct vsf_sysutil_dir*
 vsf_sysutil_opendir(const char* p_dirname)
 {
@@ -1035,6 +1080,18 @@ char*
 vsf_sysutil_strdup(const char* p_str)
 {
   return strdup(p_str);
+}
+
+char*
+vsf_sysutil_strndup(const char* p_str, unsigned int p_len)
+{
+  char *new = (char *)malloc(p_len+1);
+
+  if (new == NULL)
+    return NULL;
+
+  new[p_len]='\0';
+  return (char *)memcpy(new, p_str, p_len);
 }
 
 void
@@ -2054,6 +2111,19 @@ vsf_sysutil_sockaddr_set_ipv6addr(struct vsf_sysutil_sockaddr* p_sockptr,
   {
     bug("bad family");
   }
+}
+
+int
+vsf_sysutil_sockaddr_get_ipv6scope(struct vsf_sysutil_sockaddr* p_sockptr)
+{
+  return p_sockptr->u.u_sockaddr_in6.sin6_scope_id;
+}
+
+void
+vsf_sysutil_sockaddr_set_ipv6scope(struct vsf_sysutil_sockaddr* p_sockptr,
+                                  const int scope_id)
+{
+  p_sockptr->u.u_sockaddr_in6.sin6_scope_id = scope_id;
 }
 
 const void*

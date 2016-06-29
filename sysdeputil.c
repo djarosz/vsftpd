@@ -25,6 +25,11 @@
   #define _LARGEFILE64_SOURCE 1
 #endif
 
+#ifdef __linux__
+  #include <stdio.h>
+  #include <sys/utsname.h>
+#endif
+
 /* For INT_MAX */
 #include <limits.h>
 
@@ -64,7 +69,7 @@
 #include <utmpx.h>
 
 /* BEGIN config */
-#if defined(__linux__)
+#if defined(__linux__) && !defined(__s390__)
   #include <errno.h>
   #include <syscall.h>
   #define VSF_SYSDEP_HAVE_LINUX_CLONE
@@ -81,6 +86,9 @@
   #include <linux/unistd.h>
   #include <errno.h>
   #include <syscall.h>
+  #if defined(__alpha__)
+    #define __NR_getpid  __NR_getxpid
+  #endif
 #endif
 
 #if defined(__linux__) && !defined(__ia64__) && !defined(__s390__)
@@ -103,6 +111,10 @@
 #if (defined(__FreeBSD__) && __FreeBSD__ >= 3)
   #define VSF_SYSDEP_HAVE_FREEBSD_SENDFILE
   #define VSF_SYSDEP_HAVE_SETPROCTITLE
+#endif
+
+#if defined(__FreeBSD_kernel__)
+  #undef VSF_SYSDEP_HAVE_LIBCAP
 #endif
 
 #if defined(__NetBSD__)
@@ -1262,15 +1274,40 @@ vsf_set_term_if_parent_dies()
 #endif
 }
 
+#ifdef VSF_SYSDEP_HAVE_LINUX_CLONE
+/* On Linux versions <2.6.35, netns cleanup may be so slow that
+ * creating a netns per connection allows a remote denial-of-service.
+ * We therefore do not use CLONE_NEWNET on these versions.
+ */
+static int
+vsf_sysutil_netns_cleanup_is_fast(void)
+{
+#ifdef __linux__
+  struct utsname utsname;
+  int r1, r2, r3 = 0;
+  return (uname(&utsname) == 0 &&
+	  sscanf(utsname.release, "%d.%d.%d", &r1, &r2, &r3) >= 2 &&
+	  ((r1 << 16) | (r2 << 8) | r3) >= ((2 << 16) | (6 << 8) | 35));
+#else
+  /* Assume any other kernel that has the feature don't have this problem */
+  return 1;
+#endif
+}
+#endif
+
 int
 vsf_sysutil_fork_isolate_all_failok()
 {
 #ifdef VSF_SYSDEP_HAVE_LINUX_CLONE
-  static int cloneflags_work = 1;
+  static int cloneflags_work = -1;
+  if (cloneflags_work < 0)
+  {
+    cloneflags_work = vsf_sysutil_netns_cleanup_is_fast();
+  }
   if (cloneflags_work)
   {
     int ret = syscall(__NR_clone,
-                      CLONE_NEWPID | CLONE_NEWIPC | CLONE_NEWNET | SIGCHLD,
+                      CLONE_NEWIPC | CLONE_NEWNET | SIGCHLD,
                       NULL);
     if (ret != -1 || (errno != EINVAL && errno != EPERM))
     {
@@ -1293,7 +1330,7 @@ vsf_sysutil_fork_isolate_failok()
   static int cloneflags_work = 1;
   if (cloneflags_work)
   {
-    int ret = syscall(__NR_clone, CLONE_NEWPID | CLONE_NEWIPC | SIGCHLD, NULL);
+    int ret = syscall(__NR_clone, CLONE_NEWIPC | SIGCHLD, NULL);
     if (ret != -1 || (errno != EINVAL && errno != EPERM))
     {
       if (ret == 0)
@@ -1312,7 +1349,11 @@ int
 vsf_sysutil_fork_newnet()
 {
 #ifdef VSF_SYSDEP_HAVE_LINUX_CLONE
-  static int cloneflags_work = 1;
+  static int cloneflags_work = -1;
+  if (cloneflags_work < 0)
+  {
+    cloneflags_work = vsf_sysutil_netns_cleanup_is_fast();
+  }
   if (cloneflags_work)
   {
     int ret = syscall(__NR_clone, CLONE_NEWNET | SIGCHLD, NULL);

@@ -28,6 +28,7 @@ static struct parseconf_bool_setting
 parseconf_bool_array[] =
 {
   { "anonymous_enable", &tunable_anonymous_enable },
+  { "utf8_filesystem", &tunable_utf8_filesystem },
   { "local_enable", &tunable_local_enable },
   { "pasv_enable", &tunable_pasv_enable },
   { "port_enable", &tunable_port_enable },
@@ -171,6 +172,8 @@ parseconf_str_array[] =
   { "cmds_allowed", &tunable_cmds_allowed },
   { "hide_file", &tunable_hide_file },
   { "deny_file", &tunable_deny_file },
+  { "upload_file", &tunable_upload_file },
+  { "download_file", &tunable_download_file },
   { "user_sub_token", &tunable_user_sub_token },
   { "email_password_file", &tunable_email_password_file },
   { "rsa_cert_file", &tunable_rsa_cert_file },
@@ -280,7 +283,7 @@ vsf_parseconf_load_setting(const char* p_setting, int errs_fatal)
         }
         else
         {
-          *p_curr_setting = str_strdup(&s_value_str);
+          *p_curr_setting = str_strdup_trimmed(&s_value_str);
         }
         return;
       }

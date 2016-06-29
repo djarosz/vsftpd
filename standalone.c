@@ -7,6 +7,8 @@
  * Code to listen on the network and launch children servants.
  */
 
+#include <net/if.h>
+
 #include "standalone.h"
 
 #include "parseconf.h"
@@ -113,8 +115,17 @@ vsf_standalone_main(void)
     else
     {
       struct mystr addr_str = INIT_MYSTR;
+      struct mystr scope_id = INIT_MYSTR;
       const unsigned char* p_raw_addr;
+      unsigned int if_index = 0;
+
+      /* See if we got a scope id */
       str_alloc_text(&addr_str, tunable_listen_address6);
+      str_split_char(&addr_str, &scope_id, '%');
+      if (str_getlen(&scope_id) > 0) {
+        if_index = if_nametoindex(str_getbuf(&scope_id));
+        str_free(&scope_id);
+      }
       p_raw_addr = vsf_sysutil_parse_ipv6(&addr_str);
       str_free(&addr_str);
       if (!p_raw_addr)
@@ -122,6 +133,7 @@ vsf_standalone_main(void)
         die2("bad listen_address6: ", tunable_listen_address6);
       }
       vsf_sysutil_sockaddr_set_ipv6addr(p_sockaddr, p_raw_addr);
+      vsf_sysutil_sockaddr_set_ipv6scope(p_sockaddr, if_index);
     }
     retval = vsf_sysutil_bind(listen_sock, p_sockaddr);
     vsf_sysutil_free(p_sockaddr);

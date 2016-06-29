@@ -4,7 +4,7 @@ INSTALL	=	install
 IFLAGS  = -idirafter dummyinc
 #CFLAGS = -g
 CFLAGS	=	-O2 -fPIE -fstack-protector --param=ssp-buffer-size=4 \
-	-Wall -W -Wshadow -Werror -Wformat-security \
+	-Wall -W -Wshadow -Wformat-security \
 	-U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2 \
 	#-pedantic -Wconversion
 

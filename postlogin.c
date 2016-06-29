@@ -671,7 +671,8 @@ handle_retr(struct vsf_session* p_sess, int is_http)
   vsf_log_start_entry(p_sess, kVSFLogEntryDownload);
   str_copy(&p_sess->log_str, &p_sess->ftp_arg_str);
   prepend_path_to_filename(&p_sess->log_str);
-  if (!vsf_access_check_file(&p_sess->ftp_arg_str))
+  if (!vsf_access_check_file(&p_sess->ftp_arg_str) ||
+      !vsf_access_check_file_download(&p_sess->ftp_arg_str))
   {
     vsf_cmdio_write(p_sess, FTP_NOPERM, "Permission denied.");
     return;
@@ -1040,7 +1041,8 @@ handle_upload_common(struct vsf_session* p_sess, int is_append, int is_unique)
   vsf_log_start_entry(p_sess, kVSFLogEntryUpload);
   str_copy(&p_sess->log_str, &p_sess->ftp_arg_str);
   prepend_path_to_filename(&p_sess->log_str);
-  if (!vsf_access_check_file(p_filename))
+  if (!vsf_access_check_file(p_filename) ||
+      !vsf_access_check_file_upload(p_filename))
   {
     vsf_cmdio_write(p_sess, FTP_NOPERM, "Permission denied.");
     return;

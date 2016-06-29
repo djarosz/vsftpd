@@ -66,6 +66,7 @@ int vsf_sysutil_mkdir(const char* p_dirname, const unsigned int mode);
 int vsf_sysutil_rmdir(const char* p_dirname);
 int vsf_sysutil_chdir(const char* p_dirname);
 int vsf_sysutil_rename(const char* p_from, const char* p_to);
+char* vsf_sysutil_realpath(char const *path, int may_be_fresh);
 
 struct vsf_sysutil_dir;
 struct vsf_sysutil_dir* vsf_sysutil_opendir(const char* p_dirname);
@@ -186,6 +187,7 @@ int vsf_sysutil_wait_get_exitcode(
 /* Various string functions */
 unsigned int vsf_sysutil_strlen(const char* p_text);
 char* vsf_sysutil_strdup(const char* p_str);
+char* vsf_sysutil_strndup(const char* p_str, unsigned int p_len);
 void vsf_sysutil_memclr(void* p_dest, unsigned int size);
 void vsf_sysutil_memcpy(void* p_dest, const void* p_src,
                         const unsigned int size);
@@ -228,6 +230,9 @@ void vsf_sysutil_sockaddr_set_ipv4addr(struct vsf_sysutil_sockaddr* p_sockptr,
                                        const unsigned char* p_raw);
 void vsf_sysutil_sockaddr_set_ipv6addr(struct vsf_sysutil_sockaddr* p_sockptr,
                                        const unsigned char* p_raw);
+void vsf_sysutil_sockaddr_set_ipv6scope(struct vsf_sysutil_sockaddr* p_sockptr,
+                                      const int scope_id);
+int vsf_sysutil_sockaddr_get_ipv6scope(struct vsf_sysutil_sockaddr* p_sockptr);
 void vsf_sysutil_sockaddr_set_any(struct vsf_sysutil_sockaddr* p_sockaddr);
 unsigned short vsf_sysutil_sockaddr_get_port(
     const struct vsf_sysutil_sockaddr* p_sockptr);

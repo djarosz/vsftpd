@@ -12,11 +12,27 @@
 #include "tunables.h"
 #include "str.h"
 
+static int
+vsf_match_filter(struct mystr const *const p_filename_str,
+		 struct mystr const *const p_access_str) {
+
+  unsigned  iters = 0;
+  if (vsf_filename_passes_filter(p_filename_str, p_access_str, &iters))
+  {
+    return 1;
+  }
+  else
+  {
+    struct str_locate_result const loc_res =
+      str_locate_str(p_filename_str, p_access_str);
+    return  loc_res.found;
+  }
+}
+
 int
 vsf_access_check_file(const struct mystr* p_filename_str)
 {
   static struct mystr s_access_str;
-  unsigned int iters = 0;
 
   if (!tunable_deny_file)
   {
@@ -26,27 +42,21 @@ vsf_access_check_file(const struct mystr* p_filename_str)
   {
     str_alloc_text(&s_access_str, tunable_deny_file);
   }
-  if (vsf_filename_passes_filter(p_filename_str, &s_access_str, &iters))
+
+  if (vsf_match_filter(p_filename_str, &s_access_str))
   {
     return 0;
   }
   else
   {
-    struct str_locate_result loc_res =
-      str_locate_str(p_filename_str, &s_access_str);
-    if (loc_res.found)
-    {
-      return 0;
-    }
+    return 1;
   }
-  return 1;
 }
 
 int
 vsf_access_check_file_visible(const struct mystr* p_filename_str)
 {
   static struct mystr s_access_str;
-  unsigned int iters = 0;
 
   if (!tunable_hide_file)
   {
@@ -56,19 +66,47 @@ vsf_access_check_file_visible(const struct mystr* p_filename_str)
   {
     str_alloc_text(&s_access_str, tunable_hide_file);
   }
-  if (vsf_filename_passes_filter(p_filename_str, &s_access_str, &iters))
+
+  if (vsf_match_filter(p_filename_str, &s_access_str))
   {
     return 0;
   }
   else
   {
-    struct str_locate_result loc_res =
-      str_locate_str(p_filename_str, &s_access_str);
-    if (loc_res.found)
-    {
-      return 0;
-    }
+    return 1;
   }
-  return 1;
 }
 
+int
+vsf_access_check_file_upload(const struct mystr* p_filename_str)
+{
+  static struct mystr s_access_str;
+
+  if (!tunable_upload_file)
+  {
+    return 1;
+  }
+  if (str_isempty(&s_access_str))
+  {
+    str_alloc_text(&s_access_str, tunable_upload_file);
+  }
+
+  return  vsf_match_filter(p_filename_str, &s_access_str);
+}
+
+int
+vsf_access_check_file_download(const struct mystr* p_filename_str)
+{
+  static struct mystr s_access_str;
+
+  if (!tunable_download_file)
+  {
+    return 1;
+  }
+  if (str_isempty(&s_access_str))
+  {
+    str_alloc_text(&s_access_str, tunable_download_file);
+  }
+
+  return  vsf_match_filter(p_filename_str, &s_access_str);
+}

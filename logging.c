@@ -44,7 +44,7 @@ vsf_log_init(struct vsf_session* p_sess)
     if (tunable_xferlog_file)
     {
       retval = vsf_sysutil_create_or_open_file_append(tunable_xferlog_file,
-                                                      0600);
+                                                      0640);
     }
     if (vsf_sysutil_retval_is_error(retval))
     {
@@ -60,7 +60,7 @@ vsf_log_init(struct vsf_session* p_sess)
       if (tunable_vsftpd_log_file)
       {
         retval = vsf_sysutil_create_or_open_file_append(tunable_vsftpd_log_file,
-                                                        0600);
+                                                        0640);
       }
       if (vsf_sysutil_retval_is_error(retval))
       {
