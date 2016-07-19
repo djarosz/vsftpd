@@ -987,7 +987,7 @@ vsf_sysutil_chdir(const char* p_dirname)
 int
 vsf_sysutil_rename(const char* p_from, const char* p_to)
 {
-  return rename(p_from, p_to);
+  return rename(translate_windows_path(p_from), translate_windows_path(p_to));
 }
 
 char*
