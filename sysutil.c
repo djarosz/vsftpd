@@ -1276,14 +1276,14 @@ int
 vsf_sysutil_stat(const char* p_name, struct vsf_sysutil_statbuf** p_ptr)
 {
   vsf_sysutil_alloc_statbuf(p_ptr);
-  return stat(p_name, (struct stat*) (*p_ptr));
+  return stat(translate_windows_path(p_name), (struct stat*) (*p_ptr));
 }
 
 int
 vsf_sysutil_lstat(const char* p_name, struct vsf_sysutil_statbuf** p_ptr)
 {
   vsf_sysutil_alloc_statbuf(p_ptr);
-  return lstat(p_name, (struct stat*) (*p_ptr));
+  return lstat(translate_windows_path(p_name), (struct stat*) (*p_ptr));
 }
 
 void
